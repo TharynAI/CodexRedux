@@ -3,6 +3,7 @@ import type { AppConfig } from "../../config.js";
 import type { SpawnOptions } from "child_process";
 
 import { exec } from "./raw-exec.js";
+import { CODEX_UNSAFE_ALLOW_NO_SANDBOX } from "../../config.js";
 import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
@@ -56,6 +57,10 @@ export async function execWithLandlock(
 let sandboxExecutablePromise: Promise<string> | null = null;
 
 async function detectSandboxExecutable(): Promise<string> {
+  // If sandbox is disabled (dangerous/full-auto mode), skip detection.
+  if (CODEX_UNSAFE_ALLOW_NO_SANDBOX) {
+    return "";
+  }
   // Find the executable relative to the package.json file.
   const __filename = fileURLToPath(import.meta.url);
   let dir: string = path.dirname(__filename);
