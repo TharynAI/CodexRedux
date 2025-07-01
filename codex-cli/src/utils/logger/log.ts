@@ -78,6 +78,18 @@ let logger: Logger;
  * - Linux: `tail -F ~/.local/oai-codex/codex-cli-latest.log`
  */
 export function initLogger(): Logger {
+  // When the code is executed inside Vitest we disable file-system logging to
+  // avoid races around symlink creation that can cause EEXIST/ENOENT errors
+  // when multiple test files initialise the logger concurrently.
+  // We detect Vitest via the global `vitest` flag that the runner injects.
+  const isVitest =
+    typeof (globalThis as { vitest?: unknown }).vitest !== "undefined" ||
+    Boolean(process.env["VITEST"]);
+
+  if (isVitest) {
+    logger = logger ?? new EmptyLogger();
+    return logger;
+  }
   if (logger) {
     return logger;
   } else if (!process.env["DEBUG"]) {

@@ -7,13 +7,26 @@ import {
 import type { ReasoningEffort } from "openai/resources.mjs";
 import * as fs from "fs";
 
-// Mock the fs module
-vi.mock("fs", () => ({
-  existsSync: vi.fn(),
-  readFileSync: vi.fn(),
-  writeFileSync: vi.fn(),
-  mkdirSync: vi.fn(),
-}));
+// Mock the fs module.  We need a *partial* mock so that unrelated APIs used by
+// the logger (e.g. `symlinkSync`, `unlinkSync`) remain available.  Otherwise
+// `loadConfig()` – which triggers `initLogger()` – throws when those exports
+// are missing.  We spread the real `fs` exports and stub only the ones we
+// actively validate in this suite.
+vi.mock("fs", async () => {
+  const actual = await vi.importActual<typeof import("fs")>("fs");
+  return {
+    ...actual,
+    existsSync: vi.fn(),
+    readFileSync: vi.fn(),
+    writeFileSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    // keep symlinkSync/unlinkSync as no-ops to avoid side-effects but satisfy
+    // the logger. Using `actual.symlinkSync` would also work but we prefer a
+    // stub to avoid touching the real FS.
+    symlinkSync: vi.fn(),
+    unlinkSync: vi.fn(),
+  };
+});
 
 // Mock path.dirname
 vi.mock("path", async () => {
