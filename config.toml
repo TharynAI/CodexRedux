@@ -1,0 +1,6 @@
+# 2025-06-29T17:45Z | Add default notify settings for desktop alerts
+notify = ["notify-send", "CodexCLI"]
+
+[cli]
+# 2025-06-29T17:45Z | Enable notifications by default for codex CLI
+notify = true

@@ -292,6 +292,13 @@ const isSandboxExecAvailable: Promise<boolean> = fs
   );
 
 async function getSandbox(runInSandbox: boolean): Promise<SandboxType> {
+  if (
+    runInSandbox &&
+    (CODEX_UNSAFE_ALLOW_NO_SANDBOX || process.env["DANGEROUSLY_AUTO_APPROVE_EVERYTHING"] === "1")
+  ) {
+    // SF> 2025-06-29T01:11Z | full-auto or dangerous mode: bypass sandbox entirely
+    return SandboxType.NONE;
+  }
   if (runInSandbox) {
     if (process.platform === "darwin") {
       // On macOS we rely on the system-provided `sandbox-exec` binary to
@@ -313,10 +320,6 @@ async function getSandbox(runInSandbox: boolean): Promise<SandboxType> {
       // using Landlock in a Linux Docker container from a macOS host may not
       // work.
       return SandboxType.LINUX_LANDLOCK;
-    } else if (CODEX_UNSAFE_ALLOW_NO_SANDBOX) {
-      // Allow running without a sandbox if the user has explicitly marked the
-      // environment as already being sufficiently locked-down.
-      return SandboxType.NONE;
     }
 
     // For all else, we hard fail if the user has requested a sandbox and none is available.

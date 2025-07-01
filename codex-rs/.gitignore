@@ -1,5 +1,8 @@
 /target/
 
+# File to track last built revision for codexBuildLocal.sh
+.codex_last_built_rev
+
 # Recommended value of CARGO_TARGET_DIR when using Docker as explained in .devcontainer/README.md.
 /target-amd64/
 
